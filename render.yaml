@@ -1,0 +1,46 @@
+services:
+  # Frontend (React + Vite)
+  - type: web
+    name: nexusai-frontend
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm run preview
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: VITE_SUPABASE_URL
+        fromService:
+          name: nexusai-backend
+          type: web
+          property: host
+      - key: VITE_SUPABASE_ANON_KEY
+        sync: false
+      - key: VITE_SERVER_URL
+        fromService:
+          name: nexusai-backend
+          type: web
+          property: host
+    domains:
+      - nexusai-frontend.onrender.com
+
+  # Backend (Node.js + Express + Socket.IO)
+  - type: web
+    name: nexusai-backend
+    env: node
+    buildCommand: npm install
+    startCommand: node server/index.js
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: VITE_SUPABASE_URL
+        sync: false
+      - key: VITE_SUPABASE_ANON_KEY
+        sync: false
+      - key: GOOGLE_GEMINI_API_KEY
+        sync: false
+    domains:
+      - nexusai-backend.onrender.com
