@@ -11,8 +11,8 @@
     "typecheck": "tsc --noEmit -p tsconfig.app.json",
     "server": "node server/index.js",
     "start": "node server/index.js",
-    "build:server": "echo 'Server build complete'",
-    "heroku-postbuild": "npm run build"
+    "build:production": "npm install && npm run build",
+    "dev:server": "NODE_ENV=development node server/index.js"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

@@ -5,6 +5,12 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { createClient } from '@supabase/supabase-js';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Get __dirname equivalent for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 dotenv.config();
 
@@ -13,7 +19,7 @@ const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
     origin: process.env.NODE_ENV === 'production' 
-      ? ['https://nexusai-frontend.onrender.com', 'https://nexusai-backend.onrender.com']
+      ? true  // Allow same origin requests
       : '*',
     methods: ['GET', 'POST'],
     credentials: true
@@ -22,11 +28,22 @@ const io = new Server(httpServer, {
 
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? ['https://nexusai-frontend.onrender.com', 'https://nexusai-backend.onrender.com']
+    ? true  // Allow same origin requests
     : '*',
   credentials: true
 }));
 app.use(express.json());
+
+// Serve static files from the React app build directory
+if (process.env.NODE_ENV === 'production') {
+  // Serve static files from dist directory
+  app.use(express.static(path.join(__dirname, '../dist')));
+  
+  // Catch all handler: send back React's index.html file for any non-API routes
+  app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '../dist/index.html'));
+  });
+}
 
 // Health check endpoint
 app.get('/health', (req, res) => {

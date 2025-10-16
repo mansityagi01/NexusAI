@@ -20,7 +20,8 @@ export function useSocket() {
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
-    const serverUrl = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001';
+    // In production, connect to same origin. In development, use localhost:3001
+    const serverUrl = import.meta.env.DEV ? 'http://localhost:3001' : window.location.origin;
     const socketInstance = io(serverUrl);
 
     socketInstance.on('connect', () => {
