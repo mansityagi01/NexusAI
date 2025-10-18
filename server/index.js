@@ -489,21 +489,24 @@ async function phishingGuardAgent(socket, ticketId, fullContent) {
   await emitLog(socket, ticketId, '🔍 Scanning email content for malicious indicators and threat patterns', 'PhishGuard Agent');
   await delay(2000);
   
-  // Extract malicious elements from the subject
-  const lowerSubject = subject.toLowerCase();
+  // Extract malicious elements from the full content
+  const lowerContent = fullContent.toLowerCase();
   let threatDetails = [];
   
-  if (lowerSubject.includes('congratulations') && lowerSubject.includes('won')) {
+  if (lowerContent.includes('congratulations') && lowerContent.includes('won')) {
     threatDetails.push('Prize scam pattern detected');
   }
-  if (lowerSubject.includes('click') && lowerSubject.includes('link')) {
+  if (lowerContent.includes('click') && lowerContent.includes('link')) {
     threatDetails.push('Malicious link redirection attempt');
   }
-  if (lowerSubject.includes('fish.com') || lowerSubject.includes('suspicious')) {
-    threatDetails.push('Suspicious domain identified: fish.com');
+  if (lowerContent.includes('fish.com') || lowerContent.includes('suspicious')) {
+    threatDetails.push('Suspicious domain identified');
   }
-  if (lowerSubject.includes('redeem') || lowerSubject.includes('claim')) {
+  if (lowerContent.includes('redeem') || lowerContent.includes('claim')) {
     threatDetails.push('Social engineering technique: urgency/greed exploitation');
+  }
+  if (lowerContent.includes('laptop') && (lowerContent.includes('control') || lowerContent.includes('pop-up') || lowerContent.includes('remote'))) {
+    threatDetails.push('Device compromise indicators detected');
   }
 
   await emitLog(socket, ticketId, `⚠️ THREAT IDENTIFIED: ${threatDetails.join(', ')}`, 'PhishGuard Agent');
@@ -533,10 +536,10 @@ async function phishingGuardAgent(socket, ticketId, fullContent) {
 }
 
 // Knowledge base for common IT issues
-function getKnowledgeBaseSolution(subject) {
-  const lowerSubject = subject.toLowerCase();
+function getKnowledgeBaseSolution(fullContent) {
+  const lowerContent = fullContent.toLowerCase();
   
-  if (lowerSubject.includes('email') || lowerSubject.includes('outlook') || lowerSubject.includes('mail')) {
+  if (lowerContent.includes('email') || lowerContent.includes('outlook') || lowerContent.includes('mail')) {
     return {
       solution: 'Email Client Setup Instructions',
       steps: [
@@ -550,7 +553,7 @@ function getKnowledgeBaseSolution(subject) {
     };
   }
   
-  if (lowerSubject.includes('password') || lowerSubject.includes('reset') || lowerSubject.includes('login')) {
+  if (lowerContent.includes('password') || lowerContent.includes('reset') || lowerContent.includes('login')) {
     return {
       solution: 'Password Reset Procedure',
       steps: [
@@ -564,7 +567,7 @@ function getKnowledgeBaseSolution(subject) {
     };
   }
   
-  if (lowerSubject.includes('wifi') || lowerSubject.includes('network') || lowerSubject.includes('internet')) {
+  if (lowerContent.includes('wifi') || lowerContent.includes('network') || lowerContent.includes('internet')) {
     return {
       solution: 'WiFi Connection Setup',
       steps: [
@@ -577,7 +580,7 @@ function getKnowledgeBaseSolution(subject) {
     };
   }
   
-  if (lowerSubject.includes('software') || lowerSubject.includes('install') || lowerSubject.includes('application')) {
+  if (lowerContent.includes('software') || lowerContent.includes('install') || lowerContent.includes('application')) {
     return {
       solution: 'Software Installation Guide',
       steps: [
@@ -590,7 +593,7 @@ function getKnowledgeBaseSolution(subject) {
     };
   }
   
-  if (lowerSubject.includes('printer') || lowerSubject.includes('print')) {
+  if (lowerContent.includes('printer') || lowerContent.includes('print')) {
     return {
       solution: 'Printer Setup Instructions',
       steps: [
@@ -625,7 +628,7 @@ async function itSupportAgent(socket, ticketId, fullContent) {
   await delay(2000);
 
   // Get specific IT solution
-  const solution = getKnowledgeBaseSolution(subject);
+  const solution = getKnowledgeBaseSolution(fullContent);
   
   await emitLog(socket, ticketId, '💡 Technical solution identified from knowledge base', 'IT Support Agent');
   await delay(1000);
@@ -653,10 +656,10 @@ async function hrSupportAgent(socket, ticketId, fullContent) {
   await emitLog(socket, ticketId, '📋 Conducting thorough review of employee request against current company policies and procedures', 'HR Support Agent');
   await delay(2000);
 
-  const lowerSubject = subject.toLowerCase();
+  const lowerContent = fullContent.toLowerCase();
   let hrResponse = {};
 
-  if (lowerSubject.includes('leave') || lowerSubject.includes('vacation')) {
+  if (lowerContent.includes('leave') || lowerContent.includes('vacation')) {
     hrResponse = {
       type: 'Leave Request Processing',
       actions: [
@@ -667,7 +670,7 @@ async function hrSupportAgent(socket, ticketId, fullContent) {
         'Sending confirmation email with leave details'
       ]
     };
-  } else if (lowerSubject.includes('payroll') || lowerSubject.includes('salary')) {
+  } else if (lowerContent.includes('payroll') || lowerContent.includes('salary')) {
     hrResponse = {
       type: 'Payroll Inquiry Resolution',
       actions: [
@@ -678,7 +681,7 @@ async function hrSupportAgent(socket, ticketId, fullContent) {
         'Providing detailed payroll breakdown'
       ]
     };
-  } else if (lowerSubject.includes('benefits') || lowerSubject.includes('insurance')) {
+  } else if (lowerContent.includes('benefits') || lowerContent.includes('insurance')) {
     hrResponse = {
       type: 'Benefits Administration',
       actions: [
@@ -722,10 +725,10 @@ async function financeSupportAgent(socket, ticketId, fullContent) {
   await emitLog(socket, ticketId, '📊 Analyzing financial request and validating against company procedures and compliance requirements', 'Finance Support Agent');
   await delay(2000);
 
-  const lowerSubject = subject.toLowerCase();
+  const lowerContent = fullContent.toLowerCase();
   let financeResponse = {};
 
-  if (lowerSubject.includes('invoice') || lowerSubject.includes('billing')) {
+  if (lowerContent.includes('invoice') || lowerContent.includes('billing')) {
     financeResponse = {
       type: 'Invoice Processing',
       actions: [
@@ -736,7 +739,7 @@ async function financeSupportAgent(socket, ticketId, fullContent) {
         'Updating accounts payable ledger'
       ]
     };
-  } else if (lowerSubject.includes('expense') || lowerSubject.includes('reimbursement')) {
+  } else if (lowerContent.includes('expense') || lowerContent.includes('reimbursement')) {
     financeResponse = {
       type: 'Expense Reimbursement',
       actions: [
@@ -747,7 +750,7 @@ async function financeSupportAgent(socket, ticketId, fullContent) {
         'Sending reimbursement confirmation'
       ]
     };
-  } else if (lowerSubject.includes('budget') || lowerSubject.includes('financial')) {
+  } else if (lowerContent.includes('budget') || lowerContent.includes('financial')) {
     financeResponse = {
       type: 'Financial Analysis',
       actions: [
