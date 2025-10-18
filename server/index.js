@@ -53,11 +53,15 @@ app.get('/api/info', (req, res) => {
   });
 });
 
+// Test route
+app.get('/test', (req, res) => {
+  res.send('<h1>🚀 NexusAI Server is Working!</h1><p>Environment: ' + (process.env.NODE_ENV || 'development') + '</p>');
+});
+
 // Serve static files from the React app build directory
-if (process.env.NODE_ENV === 'production') {
-  // Serve static files from dist directory
-  app.use(express.static(path.join(__dirname, '../dist')));
-}
+const staticPath = path.join(__dirname, '../dist');
+console.log('Serving static files from:', staticPath);
+app.use(express.static(staticPath));
 
 const supabase = createClient(
   process.env.VITE_SUPABASE_URL || 'https://tgfwlcooihvfwhbekimi.supabase.co',
@@ -612,11 +616,12 @@ io.on('connection', (socket) => {
 });
 
 // Catch all handler: send back React's index.html file for any non-API routes
-if (process.env.NODE_ENV === 'production') {
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../dist/index.html'));
-  });
-}
+app.use((req, res) => {
+  const indexPath = path.join(__dirname, '../dist/index.html');
+  console.log('Serving index.html from:', indexPath);
+  console.log('Request URL:', req.url);
+  res.sendFile(indexPath);
+});
 
 const PORT = process.env.PORT || 3001;
 const HOST = process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost';
