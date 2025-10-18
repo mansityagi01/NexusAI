@@ -34,17 +34,6 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Serve static files from the React app build directory
-if (process.env.NODE_ENV === 'production') {
-  // Serve static files from dist directory
-  app.use(express.static(path.join(__dirname, '../dist')));
-  
-  // Catch all handler: send back React's index.html file for any non-API routes
-  app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../dist/index.html'));
-  });
-}
-
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.status(200).json({ 
@@ -63,6 +52,12 @@ app.get('/api/info', (req, res) => {
     features: ['Socket.IO', 'Supabase', 'Gemini AI', 'Multi-Agent System']
   });
 });
+
+// Serve static files from the React app build directory
+if (process.env.NODE_ENV === 'production') {
+  // Serve static files from dist directory
+  app.use(express.static(path.join(__dirname, '../dist')));
+}
 
 const supabase = createClient(
   process.env.VITE_SUPABASE_URL || 'https://tgfwlcooihvfwhbekimi.supabase.co',
@@ -615,6 +610,13 @@ io.on('connection', (socket) => {
     console.log('Client disconnected:', socket.id);
   });
 });
+
+// Catch all handler: send back React's index.html file for any non-API routes
+if (process.env.NODE_ENV === 'production') {
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../dist/index.html'));
+  });
+}
 
 const PORT = process.env.PORT || 3001;
 const HOST = process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost';
