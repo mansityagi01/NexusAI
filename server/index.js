@@ -165,8 +165,8 @@ async function delay(ms) {
 }
 
 // ENHANCED MASTER AGENT - Advanced Classification Logic
-function masterAgentClassify(subject) {
-  const lowerSubject = subject.toLowerCase();
+function masterAgentClassify(fullContent) {
+  const lowerContent = fullContent.toLowerCase();
   
   // Define comprehensive agent categories with enhanced keyword detection
   const agentCategories = {
@@ -178,11 +178,16 @@ function masterAgentClassify(subject) {
       'verify account', 'update payment', 'confirm identity', 'suspended account', 'account locked',
       'free money', 'cash prize', 'inheritance', 'million dollars', 'tax refund', 'refund pending',
       
-      // Security threats
+      // Security threats and suspicious activity
       'phishing', 'malware', 'virus', 'infection', 'trojan', 'ransomware', 'spyware',
       'security breach', 'hack', 'hacked', 'breach', 'threat', 'attack', 'cyber',
       'spam', 'scam', 'fraud', 'fraudulent', 'suspicious email', 'dangerous link',
       'unauthorized access', 'data breach', 'identity theft',
+      'suspicious mail', 'suspicious message', 'suspicious email', 'strange email',
+      'laptop not in control', 'computer not in control', 'device compromised', 'system compromised',
+      'lost control', 'cannot control', 'acting strange', 'behaving oddly',
+      'remote access', 'someone controlling', 'unauthorized control', 'hijacked',
+      'infected computer', 'compromised device', 'malicious software',
       
       // Suspicious domains and patterns
       'fish.com', 'bit.ly', 'tinyurl', 'suspicious-domain', 'phish', 'fake-bank',
@@ -280,7 +285,7 @@ function masterAgentClassify(subject) {
   for (const [category, keywords] of Object.entries(agentCategories)) {
     let score = 0;
     for (const keyword of keywords) {
-      if (lowerSubject.includes(keyword)) {
+      if (lowerContent.includes(keyword)) {
         // Give higher scores for exact matches and longer keywords
         let baseScore = keyword.length > 10 ? 3 : keyword.length > 5 ? 2 : 1;
         
@@ -311,13 +316,13 @@ function masterAgentClassify(subject) {
   return 'General Inquiry';
 }
 
-async function masterAgentTriage(socket, ticketId, subject) {
+async function masterAgentTriage(socket, ticketId, fullContent) {
   await emitLog(socket, ticketId, '🤖 Master Agent activated for advanced ticket classification...', 'Master Agent');
   await delay(1000);
 
   try {
     // STEP 1: Enhanced Rule-based Classification (Primary)
-    const ruleBasedClassification = masterAgentClassify(subject);
+    const ruleBasedClassification = masterAgentClassify(fullContent);
     await emitLog(socket, ticketId, `📋 Enhanced Rule-based Analysis: ${ruleBasedClassification}`, 'Master Agent');
     await delay(500);
 
@@ -338,7 +343,7 @@ async function masterAgentTriage(socket, ticketId, subject) {
 
 CATEGORIES:
 - "IT Support": Password resets, email issues, software problems, network connectivity, hardware troubleshooting
-- "Phishing/Security": Suspicious emails, malicious links, security threats, phishing attempts, malware alerts
+- "Phishing/Security": Suspicious emails, malicious links, security threats, phishing attempts, malware alerts, compromised devices, laptop control issues
 - "HR Support": Leave requests, payroll questions, benefits, workplace issues, employee policies
 - "Finance Support": Invoices, expenses, billing, payments, budget questions, vendor issues
 - "General Inquiry": Questions that don't fit above categories
@@ -348,10 +353,11 @@ EXAMPLES:
 "Forgot my login credentials" → IT Support
 "Can't connect to WiFi" → IT Support
 "Suspicious email from fake bank" → Phishing/Security
+"I got a suspicious mail and it caused my laptop not in my control" → Phishing/Security
 "Need vacation days approved" → HR Support
 "Invoice payment question" → Finance Support
 
-TICKET: "${subject}"
+TICKET: "${fullContent}"
 
 ANSWER: Only respond with the exact category name.`;
 
@@ -397,13 +403,13 @@ ANSWER: Only respond with the exact category name.`;
         const geminiPrompt = `You are the Master Agent in a multi-agent IT support system. Classify this ticket into ONE category:
 
 Categories:
-- "Phishing/Security" - Suspicious emails, phishing attempts, security threats, malware
+- "Phishing/Security" - Suspicious emails, phishing attempts, security threats, malware, compromised devices, laptop control issues
 - "IT Support" - Technical issues like passwords, email, software, hardware
 - "HR Support" - Human resources matters like leave, payroll, benefits
 - "Finance Support" - Financial matters like invoices, expenses, billing
 - "General Inquiry" - Everything else
 
-Ticket Subject: "${subject}"
+Ticket Content: "${fullContent}"
 
 Respond with ONLY the category name.`;
 
@@ -432,19 +438,19 @@ Respond with ONLY the category name.`;
 
     switch (finalClassification) {
       case 'Phishing/Security':
-        await phishingGuardAgent(socket, ticketId, subject);
+        await phishingGuardAgent(socket, ticketId, fullContent);
         break;
       case 'IT Support':
-        await itSupportAgent(socket, ticketId, subject);
+        await itSupportAgent(socket, ticketId, fullContent);
         break;
       case 'HR Support':
-        await hrSupportAgent(socket, ticketId, subject);
+        await hrSupportAgent(socket, ticketId, fullContent);
         break;
       case 'Finance Support':
-        await financeSupportAgent(socket, ticketId, subject);
+        await financeSupportAgent(socket, ticketId, fullContent);
         break;
       default:
-        await generalInquiryAgent(socket, ticketId, subject);
+        await generalInquiryAgent(socket, ticketId, fullContent);
     }
 
   } catch (error) {
@@ -452,30 +458,30 @@ Respond with ONLY the category name.`;
     await emitLog(socket, ticketId, `❌ Master Agent error: ${error.message}`, 'System');
     
     // Ultimate fallback to enhanced rule-based classification
-    const fallbackClassification = masterAgentClassify(subject);
+    const fallbackClassification = masterAgentClassify(fullContent);
     await emitLog(socket, ticketId, `🔄 Using enhanced rule-based fallback: ${fallbackClassification}`, 'Master Agent');
     
     switch (fallbackClassification) {
       case 'Phishing/Security':
-        await phishingGuardAgent(socket, ticketId, subject);
+        await phishingGuardAgent(socket, ticketId, fullContent);
         break;
       case 'IT Support':
-        await itSupportAgent(socket, ticketId, subject);
+        await itSupportAgent(socket, ticketId, fullContent);
         break;
       case 'HR Support':
-        await hrSupportAgent(socket, ticketId, subject);
+        await hrSupportAgent(socket, ticketId, fullContent);
         break;
       case 'Finance Support':
-        await financeSupportAgent(socket, ticketId, subject);
+        await financeSupportAgent(socket, ticketId, fullContent);
         break;
       default:
-        await generalInquiryAgent(socket, ticketId, subject);
+        await generalInquiryAgent(socket, ticketId, fullContent);
     }
   }
 }
 
 // PHISHING GUARD AGENT - Specialized Security Agent
-async function phishingGuardAgent(socket, ticketId, subject) {
+async function phishingGuardAgent(socket, ticketId, fullContent) {
   await emitLog(socket, ticketId, '🛡️ PhishGuard Agent activated for security threat analysis...', 'PhishGuard Agent');
   await delay(1000);
 
@@ -611,7 +617,7 @@ function getKnowledgeBaseSolution(subject) {
 }
 
 // IT SUPPORT AGENT - Technical Issues Specialist
-async function itSupportAgent(socket, ticketId, subject) {
+async function itSupportAgent(socket, ticketId, fullContent) {
   await emitLog(socket, ticketId, '🔧 IT Support Agent activated for technical assistance...', 'IT Support Agent');
   await delay(1000);
 
@@ -640,7 +646,7 @@ async function itSupportAgent(socket, ticketId, subject) {
 }
 
 // HR SUPPORT AGENT - Human Resources Specialist  
-async function hrSupportAgent(socket, ticketId, subject) {
+async function hrSupportAgent(socket, ticketId, fullContent) {
   await emitLog(socket, ticketId, '👥 HR Support Agent activated for employee assistance...', 'HR Support Agent');
   await delay(1000);
 
@@ -709,7 +715,7 @@ async function hrSupportAgent(socket, ticketId, subject) {
 }
 
 // FINANCE SUPPORT AGENT - Financial Operations Specialist
-async function financeSupportAgent(socket, ticketId, subject) {
+async function financeSupportAgent(socket, ticketId, fullContent) {
   await emitLog(socket, ticketId, '💰 Finance Support Agent activated for financial assistance...', 'Finance Support Agent');
   await delay(1000);
 
@@ -777,7 +783,7 @@ async function financeSupportAgent(socket, ticketId, subject) {
   await emitLog(socket, ticketId, '📈 Financial documentation sent for records', 'Finance Support Agent');
 }
 
-async function generalInquiryAgent(socket, ticketId, subject) {
+async function generalInquiryAgent(socket, ticketId, fullContent) {
   await emitLog(socket, ticketId, 'Delegating to General Support Agent...', 'Master Agent');
   await delay(1000);
 
@@ -803,9 +809,9 @@ async function generalInquiryAgent(socket, ticketId, subject) {
   await delay(1000);
 }
 
-async function processTicket(socket, ticketId, subject) {
+async function processTicket(socket, ticketId, fullContent) {
   // Master Agent handles all classification and routing internally
-  await masterAgentTriage(socket, ticketId, subject);
+  await masterAgentTriage(socket, ticketId, fullContent);
 
   // Update ticket status to resolved after agent processing
   await supabase
