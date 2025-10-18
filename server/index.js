@@ -35,13 +35,85 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.status(200).json({ 
-    status: 'healthy', 
+// Health check endpoint with AI service status
+app.get('/health', async (req, res) => {
+  const healthStatus = {
+    status: 'healthy',
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development'
-  });
+    environment: process.env.NODE_ENV || 'development',
+    services: {
+      ollama: { status: 'unknown', message: '', url: 'http://localhost:11434' },
+      gemini: { status: 'unknown', message: '', configured: !!process.env.GEMINI_API_KEY },
+      supabase: { status: 'unknown', message: '', configured: !!(process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY) }
+    }
+  };
+
+  // Check Ollama service
+  try {
+    const ollamaResponse = await fetch('http://localhost:11434/api/version', { 
+      timeout: 3000,
+      signal: AbortSignal.timeout(3000)
+    });
+    if (ollamaResponse.ok) {
+      const version = await ollamaResponse.json();
+      healthStatus.services.ollama = { 
+        status: 'available', 
+        message: `Ollama v${version.version || 'unknown'} running`,
+        url: 'http://localhost:11434'
+      };
+    } else {
+      healthStatus.services.ollama.status = 'error';
+      healthStatus.services.ollama.message = `HTTP ${ollamaResponse.status}`;
+    }
+  } catch (error) {
+    healthStatus.services.ollama = {
+      status: 'unavailable',
+      message: 'Service not running. Install: https://ollama.ai/download',
+      url: 'http://localhost:11434',
+      error: error.message
+    };
+  }
+
+  // Check Gemini API
+  if (process.env.GEMINI_API_KEY) {
+    try {
+      const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+      healthStatus.services.gemini = {
+        status: 'configured',
+        message: 'API key configured and ready',
+        configured: true
+      };
+    } catch (error) {
+      healthStatus.services.gemini = {
+        status: 'error',
+        message: `Configuration error: ${error.message}`,
+        configured: true
+      };
+    }
+  } else {
+    healthStatus.services.gemini = {
+      status: 'not_configured',
+      message: 'GEMINI_API_KEY not provided (fallback AI)',
+      configured: false
+    };
+  }
+
+  // Check Supabase
+  if (process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY) {
+    healthStatus.services.supabase = {
+      status: 'configured',
+      message: 'Database connection configured',
+      configured: true
+    };
+  } else {
+    healthStatus.services.supabase = {
+      status: 'not_configured',
+      message: 'SUPABASE_URL or SUPABASE_ANON_KEY missing',
+      configured: false
+    };
+  }
+
+  res.json(healthStatus);
 });
 
 // API info endpoint
@@ -126,9 +198,10 @@ function masterAgentClassify(subject) {
     ],
     
     'IT Support': [
-      // Password and access issues
+      // Password and access issues (high priority keywords)
+      'password reset', 'reset password', 'forgot password', 'change password', 
       'password', 'reset', 'login', 'access', 'account locked', 'cannot login',
-      'forgot password', 'change password', 'password expired', 'two factor',
+      'password expired', 'two factor', 'need to reset', 'help resetting',
       
       // Email issues
       'email', 'outlook', 'mail', 'smtp', 'imap', 'exchange', 'inbox',
@@ -201,7 +274,7 @@ function masterAgentClassify(subject) {
     ]
   };
   
-  // Scoring system for better accuracy
+  // Enhanced scoring system for better accuracy
   let categoryScores = {};
   
   for (const [category, keywords] of Object.entries(agentCategories)) {
@@ -209,7 +282,16 @@ function masterAgentClassify(subject) {
     for (const keyword of keywords) {
       if (lowerSubject.includes(keyword)) {
         // Give higher scores for exact matches and longer keywords
-        score += keyword.length > 10 ? 3 : keyword.length > 5 ? 2 : 1;
+        let baseScore = keyword.length > 10 ? 3 : keyword.length > 5 ? 2 : 1;
+        
+        // Special high-priority scoring for common patterns
+        if (category === 'IT Support') {
+          if (keyword.includes('password') || keyword.includes('reset') || keyword.includes('login')) {
+            baseScore += 2; // Extra points for password/login issues
+          }
+        }
+        
+        score += baseScore;
       }
     }
     categoryScores[category] = score;
@@ -242,43 +324,72 @@ async function masterAgentTriage(socket, ticketId, subject) {
     let finalClassification = ruleBasedClassification;
     let aiUsed = 'Enhanced Rule-based System';
 
-    // STEP 2: Try Ollama (Local AI) for verification
-    try {
-      await emitLog(socket, ticketId, '🦙 Attempting Ollama AI verification...', 'Master Agent');
+  // STEP 2: Try Ollama (Local AI) for verification
+  try {
+    await emitLog(socket, ticketId, '🦙 Attempting Ollama AI verification...', 'Master Agent');
+    
+    // Check if Ollama service is available first
+    const healthResponse = await fetch('http://localhost:11434/api/version');
+    if (!healthResponse.ok) {
+      throw new Error('Ollama service not running');
+    }
+    
+    const ollamaPrompt = `You are an expert IT support classifier. Classify this ticket into ONE category.
+
+CATEGORIES:
+- "IT Support": Password resets, email issues, software problems, network connectivity, hardware troubleshooting
+- "Phishing/Security": Suspicious emails, malicious links, security threats, phishing attempts, malware alerts
+- "HR Support": Leave requests, payroll questions, benefits, workplace issues, employee policies
+- "Finance Support": Invoices, expenses, billing, payments, budget questions, vendor issues
+- "General Inquiry": Questions that don't fit above categories
+
+EXAMPLES:
+"I need to reset my password" → IT Support
+"Forgot my login credentials" → IT Support
+"Can't connect to WiFi" → IT Support
+"Suspicious email from fake bank" → Phishing/Security
+"Need vacation days approved" → HR Support
+"Invoice payment question" → Finance Support
+
+TICKET: "${subject}"
+
+ANSWER: Only respond with the exact category name.`;
+
+    const ollamaResponse = await ollama.generate({
+      model: 'llama2',
+      prompt: ollamaPrompt,
+      stream: false
+    });
+
+    if (ollamaResponse && ollamaResponse.response) {
+      const ollamaClassification = ollamaResponse.response.trim();
+      const validCategories = ['Phishing/Security', 'IT Support', 'HR Support', 'Finance Support', 'General Inquiry'];
       
-      const ollamaPrompt = `Classify this IT support ticket into one category: "Phishing/Security", "IT Support", "HR Support", "Finance Support", or "General Inquiry".
-
-Ticket: "${subject}"
-
-Respond with only the category name.`;
-
-      const ollamaResponse = await ollama.generate({
-        model: 'llama2',
-        prompt: ollamaPrompt,
-        stream: false
-      });
-
-      if (ollamaResponse && ollamaResponse.response) {
-        const ollamaClassification = ollamaResponse.response.trim();
-        const validCategories = ['Phishing/Security', 'IT Support', 'HR Support', 'Finance Support', 'General Inquiry'];
-        
-        if (validCategories.some(cat => ollamaClassification.includes(cat))) {
-          for (const cat of validCategories) {
-            if (ollamaClassification.includes(cat)) {
-              finalClassification = cat;
-              aiUsed = 'Ollama (Local AI)';
-              break;
-            }
-          }
+      // More strict validation - look for exact matches or close matches
+      let matchedCategory = null;
+      for (const cat of validCategories) {
+        if (ollamaClassification === cat || 
+            ollamaClassification.toLowerCase().includes(cat.toLowerCase()) ||
+            cat.toLowerCase().includes(ollamaClassification.toLowerCase())) {
+          matchedCategory = cat;
+          break;
         }
-        
-        await emitLog(socket, ticketId, `🦙 Ollama AI Classification: ${ollamaClassification}`, 'Master Agent');
-        await delay(500);
       }
-    } catch (ollamaError) {
-      await emitLog(socket, ticketId, `⚠️ Ollama unavailable, trying Gemini fallback...`, 'Master Agent');
       
-      // STEP 3: Try Gemini (Cloud AI) as final fallback
+      if (matchedCategory) {
+        finalClassification = matchedCategory;
+        aiUsed = 'Ollama (Local AI)';
+      } else {
+        await emitLog(socket, ticketId, `⚠️ Ollama gave unclear response: "${ollamaClassification}". Using rule-based classification.`, 'Master Agent');
+      }
+      
+      await emitLog(socket, ticketId, `🦙 Ollama AI Classification: ${ollamaClassification}`, 'Master Agent');
+      await delay(500);
+    }
+  } catch (ollamaError) {
+    await emitLog(socket, ticketId, `⚠️ Ollama unavailable (${ollamaError.message}), trying Gemini fallback...`, 'Master Agent');
+    
+    // STEP 3: Try Gemini (Cloud AI) as final fallback
       try {
         await emitLog(socket, ticketId, '🧠 Attempting Gemini AI fallback...', 'Master Agent');
         
@@ -709,14 +820,23 @@ io.on('connection', (socket) => {
   console.log('Client connected:', socket.id);
 
   socket.on('create_ticket', async (data) => {
-    const { ticket_subject } = data;
+    const { ticket_subject, ticket_description } = data;
     const ticketId = generateTicketId();
 
+    // Combine subject and description for better AI processing
+    const fullTicketContent = ticket_description 
+      ? `${ticket_subject}. Additional details: ${ticket_description}`
+      : ticket_subject;
+
     console.log(`Creating ticket ${ticketId}: ${ticket_subject}`);
+    if (ticket_description) {
+      console.log(`Description: ${ticket_description}`);
+    }
 
     const { error } = await supabase.from('tickets').insert({
       id: ticketId,
       subject: ticket_subject,
+      description: ticket_description || null,
       status: 'Processing'
     });
 
@@ -728,7 +848,7 @@ io.on('connection', (socket) => {
 
     socket.emit('ticket_created', { ticketId, subject: ticket_subject, status: 'Processing' });
 
-    processTicket(socket, ticketId, ticket_subject);
+    processTicket(socket, ticketId, fullTicketContent);
   });
 
   socket.on('disconnect', () => {

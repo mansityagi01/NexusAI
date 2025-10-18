@@ -2,17 +2,19 @@ import { useState } from 'react';
 import { Plus } from 'lucide-react';
 
 interface TicketFormProps {
-  onCreateTicket: (subject: string) => void;
+  onCreateTicket: (subject: string, description?: string) => void;
 }
 
 export default function TicketForm({ onCreateTicket }: TicketFormProps) {
   const [subject, setSubject] = useState('');
+  const [description, setDescription] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (subject.trim()) {
-      onCreateTicket(subject);
+      onCreateTicket(subject, description.trim() || undefined);
       setSubject('');
+      setDescription('');
     }
   };
 
@@ -27,6 +29,15 @@ export default function TicketForm({ onCreateTicket }: TicketFormProps) {
             onChange={(e) => setSubject(e.target.value)}
             placeholder="Enter ticket subject (e.g., 'Suspicious email received')"
             className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all"
+          />
+        </div>
+        <div>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Enter additional details (optional) - describe the issue, error messages, when it started, etc."
+            rows={4}
+            className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all resize-none"
           />
         </div>
         <button

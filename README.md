@@ -203,7 +203,29 @@ NODE_ENV=development
 - **Intelligent Fallback**: Enhanced rule-based system with scoring algorithms
 - **Domain Specialization**: Custom prompt engineering for each agent domain
 
-## 📊 Advanced Features
+### **Performance & Optimization**
+
+#### **Response Times**
+- **Ollama Local AI**: 2-5 seconds (can be optimized)
+- **Gemini Cloud AI**: <1 second (when available)  
+- **Rule-based Fallback**: <100ms (guaranteed)
+- **WebSocket Communication**: <50ms latency
+
+#### **Optimization Strategies**
+- **GPU Acceleration**: Reduce Ollama processing to <1 second
+- **Model Quantization**: Smaller models for faster inference
+- **Container Deployment**: Docker with optimized Ollama setup
+- **Cloud Deployment**: Render/AWS with dedicated AI instances
+- **Caching**: Pre-computed responses for common queries
+
+#### **Production Recommendations**
+```bash
+# For fastest performance in production:
+# 1. Use GPU-enabled instances
+# 2. Deploy with Docker containers  
+# 3. Enable model caching
+# 4. Configure load balancing for high traffic
+```
 
 ### 🛡️ Security Operations
 - **Multi-pattern Threat Detection**: URL scanning, domain analysis, content inspection

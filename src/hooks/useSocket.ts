@@ -82,9 +82,12 @@ export function useSocket() {
     };
   }, []);
 
-  const createTicket = (subject: string) => {
+  const createTicket = (subject: string, description?: string) => {
     if (socket && connected) {
-      socket.emit('create_ticket', { ticket_subject: subject });
+      socket.emit('create_ticket', { 
+        ticket_subject: subject,
+        ticket_description: description 
+      });
     }
   };
 

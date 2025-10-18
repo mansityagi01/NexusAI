@@ -159,3 +159,46 @@ SuperHack 2025 | Enterprise AI Operations Platform
     </div>
   );
 }
+        </span>
+      );
+    } else {
+      return (
+        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center gap-1 animate-pulse">
+          <div className="w-2 h-2 bg-blue-400 rounded-full animate-ping" />
+          Processing
+        </span>
+      );
+    }
+  };
+
+  return (
+    <div className="backdrop-blur-xl bg-white/10 rounded-2xl p-6 shadow-2xl border border-white/20 animate-fadeIn">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h3 className="text-xl font-semibold text-white">{ticketId}</h3>
+          <p className="text-white/60 text-sm mt-1">{subject}</p>
+        </div>
+        {getStatusBadge()}
+      </div>
+
+      <div className="mt-6 space-y-3 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
+        {logs.map((log, index) => (
+          <div
+            key={index}
+            className="flex items-start gap-3 p-3 rounded-lg bg-white/5 border border-white/10 animate-slideUp"
+            style={{ animationDelay: `${index * 50}ms` }}
+          >
+            <div className={`${getAgentColor(log.agentName)} mt-0.5`}>
+              {getAgentIcon(log.agentName)}
+            </div>
+            <div className="flex-1">
+              <div className="text-xs text-white/50 mb-1">{log.agentName}</div>
+              <div className="text-white/90 text-sm">{log.message}</div>
+            </div>
+          </div>
+        ))}
+        <div ref={logsEndRef} />
+      </div>
+    </div>
+  );
+}
