@@ -134,6 +134,30 @@ app.get('/test', (req, res) => {
 // Serve static files from the React app build directory
 const staticPath = path.join(__dirname, '../dist');
 console.log('Serving static files from:', staticPath);
+
+// Check if dist folder exists
+import fs from 'fs';
+if (!fs.existsSync(staticPath)) {
+  console.error('❌ ERROR: dist folder not found at:', staticPath);
+  console.error('Make sure to run "npm run build" before starting the server');
+  console.error('Current directory structure:');
+  try {
+    const projectRoot = path.join(__dirname, '..');
+    const files = fs.readdirSync(projectRoot);
+    console.error('Project root files:', files);
+  } catch (err) {
+    console.error('Could not read project directory:', err.message);
+  }
+} else {
+  console.log('✅ Found dist folder, serving static files');
+  try {
+    const distFiles = fs.readdirSync(staticPath);
+    console.log('Dist folder contents:', distFiles);
+  } catch (err) {
+    console.error('Could not read dist directory:', err.message);
+  }
+}
+
 app.use(express.static(staticPath));
 
 const supabase = createClient(
