@@ -5,6 +5,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { createClient } from '@supabase/supabase-js';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { Ollama } from 'ollama';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -68,7 +69,9 @@ const supabase = createClient(
   process.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRnZndsY29vaWh2ZndoYmVraW1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA2MTg2MTgsImV4cCI6MjA3NjE5NDYxOH0.Ik63bLcvpp5JftxRSIGNPxWmIMSFmSkqRWtH0WFO5pY'
 );
 
+// Initialize AI services
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY || 'AIzaSyB0rBIFmdOIDKJAxdxQ_eG49s3A6oUW2wQ');
+const ollama = new Ollama({ host: 'http://localhost:11434' });
 
 function generateTicketId() {
   const randomNum = Math.floor(100000 + Math.random() * 900000);
@@ -89,58 +92,134 @@ async function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-// MASTER AGENT - Pure Classification Logic
+// ENHANCED MASTER AGENT - Advanced Classification Logic
 function masterAgentClassify(subject) {
   const lowerSubject = subject.toLowerCase();
   
-  // Define agent categories with their triggers
+  // Define comprehensive agent categories with enhanced keyword detection
   const agentCategories = {
     'Phishing/Security': [
-      // Phishing indicators
-      'congratulations', 'won', 'winner', 'prize', 'lottery', 'jackpot',
-      'click here', 'click link', 'click on', 'redeem', 'claim now',
-      'urgent', 'immediate action', 'verify account', 'update payment',
-      'suspended account', 'limited time', 'act now', 'confirm identity',
-      'free money', 'cash prize', 'inheritance', 'million dollars',
-      'tax refund', 'refund pending', 'security alert', 'account locked',
+      // Classic phishing indicators
+      'congratulations', 'congratulation', 'congrats', 'won', 'winner', 'prize', 'lottery', 'jackpot',
+      'click here', 'click link', 'click on', 'click the link', 'redeem', 'claim now', 'claim your',
+      'urgent', 'immediate action', 'act now', 'limited time', 'expires soon', 'deadline',
+      'verify account', 'update payment', 'confirm identity', 'suspended account', 'account locked',
+      'free money', 'cash prize', 'inheritance', 'million dollars', 'tax refund', 'refund pending',
+      
       // Security threats
-      'phishing', 'malware', 'virus', 'infection', 'trojan', 'ransomware',
-      'security breach', 'hack', 'hacked', 'breach', 'threat', 'attack',
-      'spam', 'scam', 'fraud', 'suspicious email', 'dangerous link',
-      // Suspicious domains/URLs
-      'fish.com', 'bit.ly', 'tinyurl', 'suspicious-domain', 'phish'
+      'phishing', 'malware', 'virus', 'infection', 'trojan', 'ransomware', 'spyware',
+      'security breach', 'hack', 'hacked', 'breach', 'threat', 'attack', 'cyber',
+      'spam', 'scam', 'fraud', 'fraudulent', 'suspicious email', 'dangerous link',
+      'unauthorized access', 'data breach', 'identity theft',
+      
+      // Suspicious domains and patterns
+      'fish.com', 'bit.ly', 'tinyurl', 'suspicious-domain', 'phish', 'fake-bank',
+      'amazon security', 'paypal alert', 'bank notice', 'credit card', 'social security',
+      
+      // Nigerian prince and advance fee scams
+      'nigerian prince', 'inheritance fund', 'beneficiary', 'transfer money',
+      'deceased person', 'will and testament', 'lawyer contact', 'bank transfer',
+      
+      // Tech support scams
+      'microsoft support', 'windows expired', 'computer infected', 'call immediately',
+      'tech support', 'refund available', 'subscription renewal'
     ],
     
     'IT Support': [
-      'password', 'reset', 'login', 'access', 'account locked',
-      'email', 'outlook', 'mail', 'smtp', 'imap', 'exchange',
-      'wifi', 'network', 'internet', 'connection', 'vpn',
-      'software', 'install', 'installation', 'application', 'program',
+      // Password and access issues
+      'password', 'reset', 'login', 'access', 'account locked', 'cannot login',
+      'forgot password', 'change password', 'password expired', 'two factor',
+      
+      // Email issues
+      'email', 'outlook', 'mail', 'smtp', 'imap', 'exchange', 'inbox',
+      'cannot send', 'cannot receive', 'email setup', 'mail client',
+      
+      // Network and connectivity
+      'wifi', 'network', 'internet', 'connection', 'vpn', 'remote access',
+      'cannot connect', 'slow internet', 'network drive', 'shared folder',
+      
+      // Software and applications
+      'software', 'install', 'installation', 'application', 'program', 'app',
+      'office', 'teams', 'sharepoint', 'onedrive', 'adobe', 'chrome',
+      'update', 'upgrade', 'license', 'activation',
+      
+      // Hardware issues
       'printer', 'print', 'scanner', 'hardware', 'laptop', 'desktop',
-      'windows', 'office', 'teams', 'sharepoint', 'onedrive',
-      'backup', 'restore', 'file', 'folder', 'permission'
+      'monitor', 'keyboard', 'mouse', 'webcam', 'microphone',
+      'not working', 'broken', 'repair', 'replacement',
+      
+      // System issues
+      'windows', 'operating system', 'blue screen', 'crash', 'freeze',
+      'slow computer', 'performance', 'backup', 'restore', 'file recovery'
     ],
     
     'HR Support': [
-      'leave', 'vacation', 'sick leave', 'holiday', 'time off',
-      'payroll', 'salary', 'pay', 'benefits', 'insurance', 'health',
-      'hr policy', 'employee handbook', 'training', 'onboarding',
-      'resignation', 'termination', 'performance review',
-      'harassment', 'complaint', 'grievance', 'workplace issue'
+      // Leave and time off
+      'leave', 'vacation', 'sick leave', 'holiday', 'time off', 'pto',
+      'annual leave', 'maternity leave', 'paternity leave', 'bereavement',
+      'personal day', 'mental health day',
+      
+      // Payroll and compensation
+      'payroll', 'salary', 'pay', 'paycheck', 'wage', 'overtime',
+      'bonus', 'commission', 'raise', 'promotion', 'pay stub',
+      
+      // Benefits and insurance
+      'benefits', 'insurance', 'health', 'dental', 'vision', 'medical',
+      'retirement', '401k', 'pension', 'life insurance', 'disability',
+      
+      // HR policies and procedures
+      'hr policy', 'employee handbook', 'code of conduct', 'dress code',
+      'training', 'onboarding', 'orientation', 'performance review',
+      'disciplinary action', 'termination', 'resignation',
+      
+      // Workplace issues
+      'harassment', 'discrimination', 'complaint', 'grievance', 'workplace issue',
+      'hostile environment', 'bullying', 'conflict resolution',
+      'accommodation', 'disability', 'religious accommodation'
     ],
     
     'Finance Support': [
-      'invoice', 'billing', 'payment', 'expense', 'reimbursement',
-      'budget', 'financial', 'accounting', 'purchase order',
-      'vendor', 'supplier', 'contract', 'procurement',
-      'credit card', 'bank', 'transaction', 'receipt'
+      // Invoicing and billing
+      'invoice', 'billing', 'bill', 'payment', 'pay', 'charge',
+      'invoice approval', 'payment processing', 'overdue', 'outstanding',
+      
+      // Expenses and reimbursement
+      'expense', 'reimbursement', 'travel expense', 'mileage', 'receipt',
+      'expense report', 'petty cash', 'advance', 'per diem',
+      
+      // Budget and financial planning
+      'budget', 'financial', 'accounting', 'cost center', 'allocation',
+      'forecast', 'variance', 'financial report', 'p&l', 'balance sheet',
+      
+      // Vendor and procurement
+      'vendor', 'supplier', 'contract', 'procurement', 'purchase order',
+      'requisition', 'approval', 'vendor setup', 'payment terms',
+      
+      // Banking and transactions
+      'bank', 'transaction', 'wire transfer', 'ach', 'check', 'deposit',
+      'credit card', 'corporate card', 'reconciliation', 'statement'
     ]
   };
   
-  // Check each category for matches
+  // Scoring system for better accuracy
+  let categoryScores = {};
+  
   for (const [category, keywords] of Object.entries(agentCategories)) {
+    let score = 0;
     for (const keyword of keywords) {
       if (lowerSubject.includes(keyword)) {
+        // Give higher scores for exact matches and longer keywords
+        score += keyword.length > 10 ? 3 : keyword.length > 5 ? 2 : 1;
+      }
+    }
+    categoryScores[category] = score;
+  }
+  
+  // Find the category with the highest score
+  const maxScore = Math.max(...Object.values(categoryScores));
+  if (maxScore > 0) {
+    for (const [category, score] of Object.entries(categoryScores)) {
+      if (score === maxScore) {
         return category;
       }
     }
@@ -151,47 +230,89 @@ function masterAgentClassify(subject) {
 }
 
 async function masterAgentTriage(socket, ticketId, subject) {
-  await emitLog(socket, ticketId, '🤖 Master Agent activated for ticket classification...', 'Master Agent');
+  await emitLog(socket, ticketId, '🤖 Master Agent activated for advanced ticket classification...', 'Master Agent');
   await delay(1000);
 
   try {
-    // First: Use AI for intelligent classification
-    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+    // STEP 1: Enhanced Rule-based Classification (Primary)
+    const ruleBasedClassification = masterAgentClassify(subject);
+    await emitLog(socket, ticketId, `📋 Enhanced Rule-based Analysis: ${ruleBasedClassification}`, 'Master Agent');
+    await delay(500);
 
-    const prompt = `You are the Master Agent in a multi-agent IT support system. Your ONLY job is to classify tickets and route them to the correct specialized agent.
+    let finalClassification = ruleBasedClassification;
+    let aiUsed = 'Enhanced Rule-based System';
 
-Analyze this ticket subject and classify it into ONE of these categories:
-- "Phishing/Security" - Any suspicious emails, phishing attempts, security threats, malware, or cybersecurity issues
-- "IT Support" - Technical issues like password resets, email problems, software installations, network issues
-- "HR Support" - Human resources matters like leave requests, payroll, benefits, workplace policies
-- "Finance Support" - Financial matters like invoices, expenses, billing, payments
-- "General Inquiry" - Everything else that doesn't fit the above categories
+    // STEP 2: Try Ollama (Local AI) for verification
+    try {
+      await emitLog(socket, ticketId, '🦙 Attempting Ollama AI verification...', 'Master Agent');
+      
+      const ollamaPrompt = `Classify this IT support ticket into one category: "Phishing/Security", "IT Support", "HR Support", "Finance Support", or "General Inquiry".
+
+Ticket: "${subject}"
+
+Respond with only the category name.`;
+
+      const ollamaResponse = await ollama.generate({
+        model: 'llama2',
+        prompt: ollamaPrompt,
+        stream: false
+      });
+
+      if (ollamaResponse && ollamaResponse.response) {
+        const ollamaClassification = ollamaResponse.response.trim();
+        const validCategories = ['Phishing/Security', 'IT Support', 'HR Support', 'Finance Support', 'General Inquiry'];
+        
+        if (validCategories.some(cat => ollamaClassification.includes(cat))) {
+          for (const cat of validCategories) {
+            if (ollamaClassification.includes(cat)) {
+              finalClassification = cat;
+              aiUsed = 'Ollama (Local AI)';
+              break;
+            }
+          }
+        }
+        
+        await emitLog(socket, ticketId, `🦙 Ollama AI Classification: ${ollamaClassification}`, 'Master Agent');
+        await delay(500);
+      }
+    } catch (ollamaError) {
+      await emitLog(socket, ticketId, `⚠️ Ollama unavailable, trying Gemini fallback...`, 'Master Agent');
+      
+      // STEP 3: Try Gemini (Cloud AI) as final fallback
+      try {
+        await emitLog(socket, ticketId, '🧠 Attempting Gemini AI fallback...', 'Master Agent');
+        
+        const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+        const geminiPrompt = `You are the Master Agent in a multi-agent IT support system. Classify this ticket into ONE category:
+
+Categories:
+- "Phishing/Security" - Suspicious emails, phishing attempts, security threats, malware
+- "IT Support" - Technical issues like passwords, email, software, hardware
+- "HR Support" - Human resources matters like leave, payroll, benefits
+- "Finance Support" - Financial matters like invoices, expenses, billing
+- "General Inquiry" - Everything else
 
 Ticket Subject: "${subject}"
 
-Respond with ONLY the category name, nothing else.`;
+Respond with ONLY the category name.`;
 
-    const result = await model.generateContent(prompt);
-    const aiClassification = result.response.text().trim();
-    
-    await emitLog(socket, ticketId, `🧠 AI Classification: ${aiClassification}`, 'Master Agent');
-    await delay(500);
-
-    // Second: Use rule-based backup classification
-    const ruleBasedClassification = masterAgentClassify(subject);
-    await emitLog(socket, ticketId, `📋 Rule-based Classification: ${ruleBasedClassification}`, 'Master Agent');
-    await delay(500);
-
-    // Choose the classification (AI takes priority, rule-based as fallback)
-    let finalClassification = aiClassification;
-    const validCategories = ['Phishing/Security', 'IT Support', 'HR Support', 'Finance Support', 'General Inquiry'];
-    
-    if (!validCategories.includes(aiClassification)) {
-      finalClassification = ruleBasedClassification;
-      await emitLog(socket, ticketId, `⚠️ AI classification invalid, using rule-based: ${ruleBasedClassification}`, 'Master Agent');
+        const result = await model.generateContent(geminiPrompt);
+        const geminiClassification = result.response.text().trim();
+        
+        const validCategories = ['Phishing/Security', 'IT Support', 'HR Support', 'Finance Support', 'General Inquiry'];
+        if (validCategories.includes(geminiClassification)) {
+          finalClassification = geminiClassification;
+          aiUsed = 'Google Gemini Pro';
+        }
+        
+        await emitLog(socket, ticketId, `🧠 Gemini AI Classification: ${geminiClassification}`, 'Master Agent');
+        await delay(500);
+      } catch (geminiError) {
+        await emitLog(socket, ticketId, `⚠️ All AI services unavailable, using enhanced rule-based system`, 'Master Agent');
+      }
     }
 
-    await emitLog(socket, ticketId, `✅ Final Classification: ${finalClassification}`, 'Master Agent');
+    await emitLog(socket, ticketId, `✅ Final Classification: ${finalClassification} (via ${aiUsed})`, 'Master Agent');
     await delay(1000);
 
     // Route to appropriate specialized agent
@@ -219,9 +340,9 @@ Respond with ONLY the category name, nothing else.`;
     console.error('Master Agent error:', error);
     await emitLog(socket, ticketId, `❌ Master Agent error: ${error.message}`, 'System');
     
-    // Fallback to rule-based classification
+    // Ultimate fallback to enhanced rule-based classification
     const fallbackClassification = masterAgentClassify(subject);
-    await emitLog(socket, ticketId, `🔄 Using fallback classification: ${fallbackClassification}`, 'Master Agent');
+    await emitLog(socket, ticketId, `🔄 Using enhanced rule-based fallback: ${fallbackClassification}`, 'Master Agent');
     
     switch (fallbackClassification) {
       case 'Phishing/Security':

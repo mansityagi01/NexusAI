@@ -25,6 +25,7 @@
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "lucide-react": "^0.344.0",
+    "ollama": "^0.6.0",
     "postcss": "^8.4.35",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

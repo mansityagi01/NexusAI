@@ -1,41 +1,90 @@
-# 🤖 NexusAI - Autonomous IT Operations Dashboard
+# 🤖 NexusAI - Advanced Multi-Agent AI Platform
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)
 
 ## 🚀 Overview
 
-NexusAI is an intelligent, multi-agent IT operations system that automatically triages and resolves security threats while providing comprehensive support for general IT inquiries. Built with React, Node.js, Socket.IO, and integrated with Supabase and Google Gemini AI.
+NexusAI is an intelligent, multi-agent AI operations system that automatically triages and resolves security threats while providing comprehensive support across IT, HR, and Finance domains. Built with React, Node.js, Socket.IO, and featuring advanced AI integration with **Ollama (Local AI)**, Google Gemini Pro fallback, and enhanced rule-based classification.
 
 ## ✨ Features
 
-### 🛡️ **Automated Security Response**
-- **PhishGuard Agent**: Automatically detects and neutralizes phishing threats
-- **Real-time Threat Analysis**: Scans for malicious URLs and attachments
-- **Automated Remediation**: Blocks threats and removes from user inboxes
-- **Instant Resolution**: Security incidents resolved in seconds
+### 🧠 **Advanced Multi-AI Classification**
+- **Ollama Integration**: Primary local AI model (Llama 2) for fast, offline classification
+- **Google Gemini Pro**: Cloud AI fallback for enhanced accuracy when available
+- **Enhanced Rule-Based System**: Comprehensive keyword matching with scoring algorithm
+- **Triple-Layer Security**: Primary → Secondary → Fallback classification ensures 99.9% uptime
 
-### 💼 **Intelligent IT Support** 
-- **Smart Classification**: AI-powered ticket categorization
-- **Knowledge Base**: Comprehensive solutions for common IT issues
-- **Step-by-step Guidance**: Detailed instructions for users
-- **Escalation Management**: Seamless handoff to human agents when needed
+### 🛡️ **PhishGuard Agent - Security Specialist**
+- **Advanced Threat Detection**: Multi-pattern phishing recognition
+- **Real-time URL Analysis**: Malicious domain identification and blocking
+- **Automated Remediation**: Quarantine threats and protect network infrastructure
+- **Threat Intelligence**: Comprehensive IOC analysis and reporting
 
-### 🔄 **Real-time Communication**
-- **Live Updates**: WebSocket-based real-time ticket processing
-- **Multi-agent Workflow**: Coordinated AI agents working together  
-- **Connection Status**: Live server connectivity indicators
-- **Instant Notifications**: Immediate status updates and results
+### 🔧 **IT Support Agent - Technical Specialist**
+- **Password & Access Management**: Automated reset workflows and diagnostics
+- **Email & Network Support**: Configuration guidance and troubleshooting
+- **Software & Hardware Issues**: Installation support and maintenance procedures
+- **System Diagnostics**: Automated health checks and performance optimization
 
-## 🛠️ Tech Stack
+### 👥 **HR Support Agent - Employee Services**
+- **Leave Management**: Vacation, sick leave, and PTO processing
+- **Payroll Support**: Salary inquiries and benefits administration
+- **Policy Compliance**: Employee handbook and procedure guidance
+- **Workplace Resolution**: Harassment and grievance handling protocols
 
-- **Frontend**: React 18 + TypeScript + Vite + Tailwind CSS
-- **Backend**: Node.js + Express + Socket.IO
-- **Database**: Supabase (PostgreSQL)
-- **AI**: Google Gemini Pro API
-- **Deployment**: Render (Production Ready)
-- **Real-time**: WebSocket communication
+### 💰 **Finance Support Agent - Financial Operations**
+- **Invoice Processing**: Automated billing and payment workflows
+- **Expense Management**: Reimbursement processing and approval chains
+- **Budget Analysis**: Financial reporting and variance analysis
+- **Vendor Relations**: Supplier management and procurement support
+
+### 🔄 **Real-time Multi-Agent Orchestration**
+- **Master Agent**: Intelligent routing with AI-powered decision making
+- **Live Workflow Visualization**: Real-time agent communication logs
+- **WebSocket Communication**: Sub-second response times and status updates
+- **Agent Collaboration**: Seamless handoffs between specialized domains
+
+## 🛠️ Advanced Tech Stack
+
+### **AI & Machine Learning**
+- **Ollama**: Local AI inference with Llama 2 model
+- **Google Gemini Pro**: Cloud AI for enhanced classification accuracy
+- **Custom Rule Engine**: Advanced pattern matching with scoring algorithms
+- **Natural Language Processing**: Multi-domain text analysis and classification
+
+### **Backend Architecture**
+- **Node.js + Express**: Scalable server with microservices design
+- **Socket.IO**: Real-time bidirectional communication
+- **Multi-AI Integration**: Ollama + Gemini + Rule-based fallback system
+- **Error Handling**: Graceful degradation and automatic failover
+
+### **Frontend Experience**
+- **React 18**: Modern component architecture with concurrent features
+- **TypeScript**: Type-safe development with enhanced IDE support
+- **Tailwind CSS**: Utility-first responsive design system
+- **Vite**: Lightning-fast development and optimized production builds
+
+### **Data & Deployment**
+- **Supabase**: PostgreSQL with real-time subscriptions
+- **Render**: Production-ready cloud deployment with CI/CD
+- **Environment Management**: Secure configuration and secrets handling
+- **Monitoring**: Health checks and performance metrics
 
 ## 🚀 Quick Start
+
+### Prerequisites
+
+#### Ollama Setup (Local AI - Recommended)
+```bash
+# Install Ollama (Windows/Mac/Linux)
+# Visit: https://ollama.ai/download
+
+# Pull Llama 2 model (required for local AI)
+ollama pull llama2
+
+# Verify Ollama is running
+curl http://localhost:11434/api/version
+```
 
 ### Local Development
 
@@ -47,172 +96,193 @@ cd NexusAI
 # Install dependencies
 npm install
 
-# Start backend server
-npm run server
+# Start Ollama service (in separate terminal)
+ollama serve
 
-# Start frontend (in another terminal)
+# Start backend server
+node server/index.js
+
+# In a new terminal, start the frontend  
 npm run dev
 ```
 
-Visit `http://localhost:5173` to access the application.
-
 ### Environment Variables
 
-Create a `.env` file in the root directory:
+Create a `.env` file in the project root:
 
 ```env
-VITE_SUPABASE_URL=your_supabase_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-GOOGLE_GEMINI_API_KEY=your_gemini_api_key
+# Optional: Google Gemini API (for enhanced cloud AI fallback)
+GEMINI_API_KEY=your_gemini_api_key_here
+
+# Required: Supabase Configuration
+SUPABASE_URL=your_supabase_url
+SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# Optional: Ollama Configuration (defaults work for standard setup)
+OLLAMA_BASE_URL=http://localhost:11434
+
+# Optional: Server Configuration
+PORT=3001
+NODE_ENV=development
 ```
 
-## 📦 One-Click Deployment to Render
+### Production Deployment (Render)
 
-### Option 1: Automatic Deployment (Recommended)
+1. **Fork this repository** to your GitHub account
 
-1. **Fork this repository**
-2. **Go to [Render Dashboard](https://dashboard.render.com)**
-3. **Click "New +" → "Blueprint"**
-4. **Connect your GitHub repository**
-5. **Render auto-detects `render.yaml`**
-6. **Set environment variables and deploy!**
+2. **Install Ollama on your server** (recommended for best performance):
+   ```bash
+   # For Docker-based deployment
+   docker run -d -v ollama:/root/.ollama -p 11434:11434 --name ollama ollama/ollama
+   docker exec -it ollama ollama pull llama2
+   ```
 
-### Option 2: Manual Deployment
+3. **Connect to Render**:
+   - Go to [render.com](https://render.com)
+   - Connect your GitHub account
+   - Create a new "Web Service"
+   - Connect your forked repository
 
-Follow the detailed guide in [`DEPLOYMENT.md`](./DEPLOYMENT.md)
+4. **Configure Build Settings**:
+   ```yaml
+   Build Command: npm install && npm run build
+   Start Command: node server/index.js
+   ```
 
-## 📋 Deployment Checklist
+5. **Set Environment Variables** in Render dashboard:
+   - `GEMINI_API_KEY`: Your Google AI API key (optional but recommended)
+   - `SUPABASE_URL`: Your Supabase project URL  
+   - `SUPABASE_ANON_KEY`: Your Supabase anonymous key
+   - `OLLAMA_BASE_URL`: Your Ollama service URL (if using external Ollama)
+   - `NODE_ENV`: production
 
-See [`RENDER-CHECKLIST.md`](./RENDER-CHECKLIST.md) for a complete step-by-step deployment guide.
+6. **Deploy**: Render will automatically build and deploy your application
+
+## 🔧 Configuration
+
+### Ollama Setup (Primary AI - Recommended)
+1. **Install Ollama**: Visit [ollama.ai](https://ollama.ai/download) and install for your platform
+2. **Pull Llama 2 model**: `ollama pull llama2`
+3. **Start Ollama service**: `ollama serve` (runs on localhost:11434 by default)
+4. **Verify installation**: `curl http://localhost:11434/api/version`
+
+### Google Gemini AI Setup (Fallback AI - Optional)
+1. Visit [Google AI Studio](https://aistudio.google.com/)
+2. Create a new API key
+3. Add the key to your environment variables as `GEMINI_API_KEY`
+
+### Supabase Setup  
+1. Create account at [supabase.com](https://supabase.com/)
+2. Create a new project
+3. Copy your project URL and anon key to environment variables
+4. Run the migration file in `supabase/migrations/` to set up the database schema
+
+## 🏗️ Architecture
+
+### Advanced Multi-AI System
+- **Primary AI**: Ollama (Local Llama 2) for fast, offline classification
+- **Secondary AI**: Google Gemini Pro for enhanced accuracy when available
+- **Fallback System**: Enhanced rule-based classification with comprehensive keyword scoring
+- **Master Agent**: Intelligent routing with triple-layer AI decision making
+
+### Specialized Agent Network
+- **PhishGuard Agent**: Advanced security threat detection and remediation
+- **IT Support Agent**: Comprehensive technical support and diagnostics
+- **HR Support Agent**: Employee services and policy compliance
+- **Finance Support Agent**: Financial operations and vendor management
+
+### Real-time Communication
+- WebSocket connections for sub-second response times
+- Server-sent events for ticket status changes
+- Live multi-agent communication logs
+- Connection health monitoring and auto-reconnection
+
+### AI Integration
+- **Local AI Processing**: Ollama for privacy-conscious, offline classification
+- **Cloud AI Enhancement**: Gemini Pro for complex reasoning tasks
+- **Intelligent Fallback**: Enhanced rule-based system with scoring algorithms
+- **Domain Specialization**: Custom prompt engineering for each agent domain
+
+## 📊 Advanced Features
+
+### 🛡️ Security Operations
+- **Multi-pattern Threat Detection**: URL scanning, domain analysis, content inspection
+- **Automated Threat Response**: Real-time quarantine and network protection
+- **Advanced Phishing Detection**: ML-powered social engineering identification
+- **Security Incident Management**: Comprehensive logging and reporting
+
+### 🔧 IT Support Operations  
+- **Intelligent Diagnostics**: Automated system health checks and troubleshooting
+- **Password & Access Management**: Secure reset workflows and privilege management
+- **Software & Hardware Support**: Installation guidance and maintenance procedures
+- **Network Configuration**: Email setup, VPN configuration, and connectivity support
+
+### 👥 HR Support Operations
+- **Employee Lifecycle Management**: Onboarding, leave processing, and exit procedures
+- **Payroll & Benefits Administration**: Salary inquiries and benefits management
+- **Policy Compliance**: Handbook guidance and procedure clarification
+- **Workplace Resolution**: Harassment reporting and grievance handling
+
+### 💰 Finance Support Operations
+- **Automated Invoice Processing**: Billing workflows and payment automation
+- **Expense Management**: Reimbursement processing and approval chains
+- **Financial Reporting**: Budget analysis and variance reporting
+- **Vendor & Procurement Management**: Supplier relations and purchasing support
+
+### 🔄 Workflow Management
+- **AI-Powered Routing**: Intelligent ticket classification and agent assignment
+- **Priority-Based Processing**: Automated urgency assessment and queue management
+- **Escalation Protocols**: Seamless handoff to human agents when needed
+- **Performance Analytics**: Response time tracking and resolution metrics
 
 ## 🧪 Demo & Testing
 
 Try these example inputs to see NexusAI in action:
 
 ### 🛡️ Security Scenarios (Auto-Resolved)
-- *"Suspicious phishing email detected in my inbox"*
-- *"Malware found on workstation"* 
-- *"Security breach notification needed"*
+- *"Suspicious phishing email detected from suspicious-domain.com"*
+- *"Malware alert on workstation - need immediate quarantine"* 
+- *"Security breach notification - unauthorized access detected"*
 
-### 💼 IT Support Scenarios (Guided Solutions)
-- *"Need help setting up my email client"*
-- *"How do I reset my password?"*
-- *"Cannot connect to company WiFi"*
-- *"Printer connection issues"*
+### 🔧 IT Support Scenarios (Guided Solutions)
+- *"Need help configuring Outlook for company email"*
+- *"Forgot my password and can't access the system"*
+- *"Unable to connect to office WiFi network"*
+- *"Printer not responding to print jobs"*
 
-## 🏗️ Project Structure
+### 👥 HR Support Scenarios
+- *"Need to submit vacation request for next week"*
+- *"Questions about health insurance benefits"*
+- *"How to report workplace harassment incident"*
 
-```
-NexusAI/
-├── 📁 src/                          # Frontend React application
-│   ├── 📁 components/              # React components
-│   ├── 📁 hooks/                   # Custom React hooks
-│   └── 📄 App.tsx                  # Main application component
-├── 📁 server/                      # Backend Node.js application  
-│   └── 📄 index.js                 # Express server with Socket.IO
-├── 📁 supabase/migrations/         # Database schema
-├── 📄 render.yaml                  # Render deployment configuration
-├── 📄 Dockerfile                   # Container configuration
-├── 📄 DEPLOYMENT.md               # Deployment instructions
-└── 📄 package.json                # Dependencies and scripts
-```
+### 💰 Finance Support Scenarios
+- *"Need reimbursement for business travel expenses"*
+- *"Invoice approval workflow question"*
+- *"Budget variance analysis request"*
 
-## 🤖 AI Agents
+## 🤝 Contributing
 
-### 🧠 Master Agent
-- **Role**: Intelligent triage and classification
-- **Function**: Routes tickets to appropriate specialized agents
-- **Fallback**: Rule-based classification for 100% uptime
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Commit changes: `git commit -m 'Add amazing feature'`
+4. Push to branch: `git push origin feature/amazing-feature`
+5. Open a Pull Request
 
-### 🛡️ PhishGuard Agent  
-- **Role**: Security threat specialist
-- **Capabilities**: 
-  - Analyzes emails for indicators of compromise
-  - Blocks malicious URLs at firewall level
-  - Removes threats from user inboxes
-  - Provides detailed security reports
+## 📄 License
 
-### 💼 General Support Agent
-- **Role**: IT support specialist
-- **Knowledge Base**:
-  - Email client configuration
-  - Password reset procedures
-  - Network connectivity guides
-  - Software installation help
-  - Printer setup instructions
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🔗 API Endpoints
+## 🔗 Links
 
-### Health & Info
-- `GET /health` - Service health check
-- `GET /api/info` - Service information
-
-### WebSocket Events
-- `create_ticket` - Submit new support ticket
-- `ticket_created` - Ticket creation confirmation
-- `log_update` - Real-time agent activity logs
-- `ticket_status_update` - Final resolution status
-
-## 🌟 Key Benefits
-
-- ⚡ **Instant Security Response**: Automated threat neutralization
-- 📚 **Comprehensive Knowledge Base**: Solutions for common IT issues
-- 🔄 **Real-time Processing**: Live updates and immediate feedback
-- 🤖 **Multi-agent Coordination**: Specialized AI agents working together
-- 🛡️ **Robust Fallbacks**: 100% uptime with rule-based classification
-- 📱 **Responsive Design**: Works on desktop and mobile devices
-
-## 📊 Performance
-
-- **Security Resolution**: < 30 seconds average
-- **General Inquiry Response**: < 15 seconds average  
-- **Uptime**: 99.9% with intelligent fallbacks
-- **Concurrent Users**: Scales with Render infrastructure
-
-## 🔒 Security Features
-
-- **Environment Variable Protection**: Sensitive data secured
-- **CORS Configuration**: Proper cross-origin security
-- **Input Validation**: Sanitized user inputs
-- **Health Monitoring**: Automated service health checks
-
-## 📞 Support
-
-- **Documentation**: [`DEPLOYMENT.md`](./DEPLOYMENT.md)
-- **Quick Reference**: [`QUICKSTART.md`](./QUICKSTART.md)  
-- **Issues**: [GitHub Issues](https://github.com/mansityagi01/NexusAI/issues)
-
-## 🏆 Production Ready
-
-✅ **Render Deployment Configuration**  
-✅ **Environment Variable Management**  
-✅ **Health Monitoring & Logging**  
-✅ **CORS & Security Headers**  
-✅ **Error Handling & Fallbacks**  
-✅ **Responsive UI Design**  
-✅ **Real-time Communication**  
-✅ **Database Integration**  
-
-## 🎯 Live Demo
-
-Once deployed, your NexusAI will be available at:
-- **Frontend**: `https://nexusai-frontend.onrender.com`
-- **Backend**: `https://nexusai-backend.onrender.com`
-
----
-
-**🚀 Ready to deploy your intelligent IT operations system? Follow the [deployment guide](./DEPLOYMENT.md) and get started in minutes!**
-
-## 📜 License
-
-This project is open source and available under the [MIT License](LICENSE).
+- [Live Demo](https://nexusai-production.onrender.com/)
+- [Documentation](https://github.com/mansityagi01/NexusAI/wiki)
+- [Issues](https://github.com/mansityagi01/NexusAI/issues)
+- [Discussions](https://github.com/mansityagi01/NexusAI/discussions)
+- [Ollama Documentation](https://ollama.ai/docs)
 
 ---
 
 <div align="center">
-
-**Built with ❤️ for autonomous IT operations**
-
-[Deploy Now](https://render.com/deploy) • [Documentation](./DEPLOYMENT.md) • [Issues](https://github.com/mansityagi01/NexusAI/issues)
-
+  <p>Built with ❤️ for autonomous AI operations</p>
+  <p>🚀 <strong>Deploy instantly</strong> • 🛡️ <strong>Secure by default</strong> • ⚡ <strong>Lightning fast</strong> • 🧠 <strong>AI-powered</strong></p>
 </div>
