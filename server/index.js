@@ -480,7 +480,7 @@ async function phishingGuardAgent(socket, ticketId, subject) {
   await delay(1000);
 
   // Analyze the phishing threat
-  await emitLog(socket, ticketId, '🔍 Analyzing email for Indicators of Compromise (IOCs)...', 'PhishGuard Agent');
+  await emitLog(socket, ticketId, '🔍 Scanning email content for malicious indicators and threat patterns', 'PhishGuard Agent');
   await delay(2000);
   
   // Extract malicious elements from the subject
@@ -504,21 +504,21 @@ async function phishingGuardAgent(socket, ticketId, subject) {
   await delay(1500);
 
   // Block malicious URLs
-  await emitLog(socket, ticketId, '🚫 Executing: Block malicious URLs at firewall level...', 'PhishGuard Agent');
+  await emitLog(socket, ticketId, '🚫 Implementing immediate firewall rules to block identified malicious domains and URLs', 'PhishGuard Agent');
   await delay(2000);
   await emitLog(socket, ticketId, '✅ Malicious domains blocked: fish.com, phishing-site.com', 'PhishGuard Agent');
   await delay(1000);
 
   // Search and destroy similar emails
-  await emitLog(socket, ticketId, '🧹 Executing: Search and destroy similar phishing emails...', 'PhishGuard Agent');
+  await emitLog(socket, ticketId, '🧹 Initiating enterprise-wide search and elimination of similar phishing threats', 'PhishGuard Agent');
   await delay(2500);
   await emitLog(socket, ticketId, '✅ Found and removed 23 similar phishing emails from user inboxes', 'PhishGuard Agent');
   await delay(1000);
 
   // Quarantine and report
-  await emitLog(socket, ticketId, '🔒 Quarantining threat samples for analysis...', 'PhishGuard Agent');
+  await emitLog(socket, ticketId, '🔒 Isolating threat samples in secure sandbox environment for detailed analysis', 'PhishGuard Agent');
   await delay(1500);
-  await emitLog(socket, ticketId, '📊 Generating threat intelligence report...', 'PhishGuard Agent');
+  await emitLog(socket, ticketId, '📊 Compiling comprehensive threat intelligence report with IOCs and remediation steps', 'PhishGuard Agent');
   await delay(1500);
 
   // Final resolution
@@ -615,7 +615,7 @@ async function itSupportAgent(socket, ticketId, subject) {
   await emitLog(socket, ticketId, '🔧 IT Support Agent activated for technical assistance...', 'IT Support Agent');
   await delay(1000);
 
-  await emitLog(socket, ticketId, '🔍 Analyzing technical issue and checking system diagnostics...', 'IT Support Agent');
+  await emitLog(socket, ticketId, '🔍 Performing comprehensive technical analysis and system diagnostics', 'IT Support Agent');
   await delay(2000);
 
   // Get specific IT solution
@@ -633,7 +633,7 @@ async function itSupportAgent(socket, ticketId, subject) {
     await delay(900);
   }
 
-  await emitLog(socket, ticketId, '🔧 Running automated diagnostics and system checks...', 'IT Support Agent');
+  await emitLog(socket, ticketId, '🔧 Executing comprehensive system diagnostics and automated configuration validation', 'IT Support Agent');
   await delay(2000);
   await emitLog(socket, ticketId, '✅ System validation complete. Configuration applied successfully', 'IT Support Agent');
   await emitLog(socket, ticketId, '📞 Follow-up scheduled in 24 hours to ensure resolution', 'IT Support Agent');
@@ -644,7 +644,7 @@ async function hrSupportAgent(socket, ticketId, subject) {
   await emitLog(socket, ticketId, '👥 HR Support Agent activated for employee assistance...', 'HR Support Agent');
   await delay(1000);
 
-  await emitLog(socket, ticketId, '📋 Reviewing employee request and company policies...', 'HR Support Agent');
+  await emitLog(socket, ticketId, '📋 Conducting thorough review of employee request against current company policies and procedures', 'HR Support Agent');
   await delay(2000);
 
   const lowerSubject = subject.toLowerCase();
@@ -700,7 +700,7 @@ async function hrSupportAgent(socket, ticketId, subject) {
   await delay(1000);
 
   for (let i = 0; i < hrResponse.actions.length; i++) {
-    await emitLog(socket, ticketId, `📋 ${hrResponse.actions[i]}...`, 'HR Support Agent');
+    await emitLog(socket, ticketId, `📋 ${hrResponse.actions[i]}`, 'HR Support Agent');
     await delay(1200);
   }
 
@@ -713,7 +713,7 @@ async function financeSupportAgent(socket, ticketId, subject) {
   await emitLog(socket, ticketId, '💰 Finance Support Agent activated for financial assistance...', 'Finance Support Agent');
   await delay(1000);
 
-  await emitLog(socket, ticketId, '📊 Reviewing financial request and company procedures...', 'Finance Support Agent');
+  await emitLog(socket, ticketId, '📊 Analyzing financial request and validating against company procedures and compliance requirements', 'Finance Support Agent');
   await delay(2000);
 
   const lowerSubject = subject.toLowerCase();
@@ -769,7 +769,7 @@ async function financeSupportAgent(socket, ticketId, subject) {
   await delay(1000);
 
   for (let i = 0; i < financeResponse.actions.length; i++) {
-    await emitLog(socket, ticketId, `💼 ${financeResponse.actions[i]}...`, 'Finance Support Agent');
+    await emitLog(socket, ticketId, `💼 ${financeResponse.actions[i]}`, 'Finance Support Agent');
     await delay(1200);
   }
 

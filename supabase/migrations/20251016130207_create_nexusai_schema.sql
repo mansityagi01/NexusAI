@@ -29,6 +29,7 @@
 CREATE TABLE IF NOT EXISTS tickets (
   id text PRIMARY KEY,
   subject text NOT NULL,
+  description text, -- Optional detailed description of the issue
   status text NOT NULL DEFAULT 'Processing',
   created_at timestamptz DEFAULT now()
 );
